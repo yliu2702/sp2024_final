@@ -61,7 +61,8 @@ class CustomDataset(torch.utils.data.Dataset):
         self.df = df
         self.tokenizer = tokenizer
         self.max_len = max_len
-        # self.claim = df['statement_clean']+' '+ df['justification_clean']
+        # self.title = df['statement_clean']+' '+ df['justification_clean']
+        # self.title = df['justification_clean']
         self.title = df['statement_clean']
         self.target = self.df['label_num']
         # self.target = self.df['label_tf']
@@ -109,8 +110,15 @@ def load_ckp(checkpoint_fpath, model, optimizer):
     # test_loss_min = checkpoint['test_loss_min']
     return model, optimizer, checkpoint['epoch'], valid_loss_min.item()
 
+def ensure_directory_exists(file_path):
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+
 def save_ckp(state, is_best, checkpoint_path, best_model_path):
-    f_path = checkpoint_path,
+    f_path = checkpoint_path
+    ensure_directory_exists(f_path)
+    ensure_directory_exists(best_model_path)
     torch.save(state, f_path)
     if is_best:
         best_fpath = best_model_path
