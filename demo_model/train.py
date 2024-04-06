@@ -178,14 +178,12 @@ def evaluate(logger,epoch,val_loader, model):
     return avg_val_loss, avg_val_acc
 
 
-ckp_path = f"{DEMO_SAVE_PATH_1}/checkpointing/checkpoint/current_checkpoint.pt"
-best_model_path = f"{DEMO_SAVE_PATH_1}/checkpointing/best_model/best_model.pt"
+ckp_path = os.path.join(DEMO_SAVE_PATH_1, "checkpointing/checkpoint/current_checkpoint.pt")
+best_model_path = os.path.join(DEMO_SAVE_PATH_1, "best_model/best_model.pt")
 
 # def train_model(n_epochs, train_loader, val_loader, model, optimizer, device, checkpoint_path, best_model_path):
-train_loss, train_acc = [], []
-val_loss, val_acc = [], []
 best_acc = 0
-valid_loss_min = np.Inf
+# valid_loss_min = np.Inf
 
 for e in range(1, EPOCHS+1):
     progress_bar = tqdm(enumerate(train_data_loader), total = len(train_data_loader), desc="Training")
@@ -194,11 +192,6 @@ for e in range(1, EPOCHS+1):
     if e % 1 == 0: 
         avg_val_loss, avg_val_acc = evaluate(logger, e, val_data_loader, model)
         logger.info(f"Validation Score at epoch {e}: {avg_val_acc}")
-        if avg_val_acc > best_acc:
-            best_acc = avg_val_acc
-            model.save_pretrained(f"{DEMO_SAVE_PATH_1}/best_model")
-            logger.info(f"New best accuracy: {best_acc}. Best model saved at epoch {e}")
-        
         checkpoint = {
             'epoch': e,
             'valid_loss_min': avg_val_loss,   # loss in validation can be a good indicator
@@ -206,6 +199,13 @@ for e in range(1, EPOCHS+1):
             'optimizer': optimizer.state_dict(),
         }
         save_ckp(checkpoint, False, ckp_path, best_model_path)
+
+        if avg_val_acc > best_acc:
+            save_ckp(checkpoint, True, ckp_path, best_model_path)
+            best_acc = avg_val_acc
+            model.save_pretrained(f"{DEMO_SAVE_PATH_1}/best_model")
+            logger.info(f"New best accuracy: {best_acc}. Best model saved at epoch {e}")
+ 
 
 
 
